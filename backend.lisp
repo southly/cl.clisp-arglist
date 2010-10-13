@@ -20,11 +20,19 @@
 ;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;;; THE SOFTWARE.
 ;;;
-(defpackage :clisp-arglist
-  (:use :cl)
-  (:export :*arglist-map*))
+(in-package :swank-backend)
 
-(defpackage :make-arglist
-  (:use :cl))
-
-(in-package :clisp-arglist)
+;;; from swank-clisp.lisp
+#+clisp
+(defimplementation arglist (fname)
+  (block nil
+    (or (ignore-errors
+          (let ((exp (function-lambda-expression fname)))
+            (and exp (return (second exp)))))
+        (ignore-errors
+          (multiple-value-bind (v p)
+              (gethash fname clisp-arglist:*arglist-map*)
+            (asn p (return v))))
+        (ignore-errors
+          (return (ext:arglist fname)))
+        :not-available)))
